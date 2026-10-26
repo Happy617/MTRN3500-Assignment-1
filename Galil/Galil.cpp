@@ -60,20 +60,15 @@ Galil::~Galil() {
         std::cout << "Failed to close Galil connection. Error code: " << status << "\n";
     }
 
-    delete Functions;
     Functions = nullptr;
+}
 
-    // however consider this
-    //if (g != nullptr)
-    //{
-    //    Functions->GClose(g);
-    //    g = nullptr;
-    //}
+void Galil::DigitalOutput(uint16_t value) {
+    uint8_t low = value & 0xFF;          // bottom 8 bits
+    uint8_t high = (value >> 8) & 0xFF;   // top 8 bits
 
-    //bool ownsFunctions;
-    //if (ownsFunctions)
-    //{
-    //    delete Functions;
-    //}
-    //Functions = nullptr;
+    std::string command = "OP " + std::to_string(low) + "," + std::to_string(high) + ";";
+
+    char buffer[128];
+    Functions->GCommand(g, command.c_str(), buffer, sizeof(buffer), nullptr);
 }
