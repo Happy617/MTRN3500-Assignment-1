@@ -64,10 +64,33 @@ Galil::~Galil() {
 }
 
 void Galil::DigitalOutput(uint16_t value) {
-    uint8_t low = value & 0xFF;          // bottom 8 bits
-    uint8_t high = (value >> 8) & 0xFF;   // top 8 bits
+    uint8_t low = value & 0xFF;          // last 8 bits, 0-7 least significant bits
+    uint8_t high = (value >> 8) & 0xFF;   // first 8 bits, 8-15
 
     std::string command = "OP " + std::to_string(low) + "," + std::to_string(high) + ";";
+    //std::string command = "OP " + std::to_string(low) + ";";
+
+    char buffer[128];
+    // needs c_str for command as it a standard c string that needs a bull-terminated string, char*
+    Functions->GCommand(g, command.c_str(), buffer, sizeof(buffer), nullptr);
+}
+
+void Galil::DigitalByteOutput(bool bank, uint8_t value) {
+    std::string command;
+
+    if (bank == 0) {
+        command = "OP " + std::to_string(value) + ";";
+    }
+    else {
+        command = "OP " + std::to_string(0) + "," + std::to_string(value) + ";";
+    }
+
+    char buffer[128];
+    Functions->GCommand(g, command.c_str(), buffer, sizeof(buffer), nullptr);
+}
+
+void Galil::DigitalBitOutput(bool val, uint8_t bit) {
+    std::string command = "OB " + std::to_string(bit) + "," + std::to_string(val ? 1 : 0) + ";";
 
     char buffer[128];
     Functions->GCommand(g, command.c_str(), buffer, sizeof(buffer), nullptr);
