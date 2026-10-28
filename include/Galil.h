@@ -134,5 +134,19 @@ protected:
 	int setPoint;					// Control Setpoint
 
 	// TODO: Add any new data members or functions BELOW (DO NOT ADD THEM ABOVE THIS LINE)
-	GCStringIn address;
+
+public:
+	Galil(EmbeddedFunctions* Funcs, GCStringIn address, bool simulator);
+	GReturn StopsConnection();
+
+protected:
+	void CheckBit(uint8_t bit);
+	void CheckAnoChannel(uint8_t channel);
+	std::string SendCommand(const std::string& command);
+	
+	std::string address;
+	bool ownFunction;
+	bool useSimulator;
+	GReturn lastCommandStatus;
+	std::string lastCommandResponse;
 };
