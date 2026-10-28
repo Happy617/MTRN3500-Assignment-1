@@ -9,14 +9,14 @@ int main(void) {
 	// EmbeddedFunctions function;
 
 	EmbeddedFunctions function(true);
-	Galil g(&function, "192.168.0.120 -d");
+	Galil g2(&function, "192.168.0.120 -d");
 	//
 	//// Default const
 	////Galil g;
 
 	//// Copy con
-	 Galil g2 = g;
-	 g.StopsConnection();
+	 //Galil g2 = g;
+	 //g.StopsConnection();
 
 
 	//g.DigitalOutput(0);
