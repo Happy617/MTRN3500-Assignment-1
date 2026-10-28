@@ -4,6 +4,13 @@
 #include <iomanip>
 #include <utility>
 
+#include <conio.h>   // _kbhit, _getch  (Windows console)
+#include <chrono>
+#include <thread>
+#include <cmath>
+#include <iostream>
+//#include "Galil.h"
+
 constexpr const char* defaultAddress = "192.168.0.120 -d";
 constexpr uint8_t maxDigitalBit = 15;
 constexpr uint8_t maxNumAnalogChannels = 7;
@@ -399,4 +406,38 @@ GReturn Galil::StopsConnection() {
 
     Functions = nullptr;
     return status;
+}
+
+void clockFunction() {
+    EmbeddedFunctions funcs;                    // funcs(true) for the simulator
+    Galil galil(&funcs, "192.168.0.120 -d");   // pre-written part ends here
+
+    using Clock = std::chrono::steady_clock;
+    auto period = std::chrono::milliseconds(1000);
+    auto nextStep = Clock::now();
+    bool running = true, paused = false;
+
+    while (running) {
+        while (_kbhit()) {                      // 1. keys: never block
+            int key = _getch();
+            if (key == 0 || key == 224) { _getch(); continue; }   // arrows/F-keys send 2 bytes
+            switch (key) {
+            case 'q': case 'Q': running = false; break;
+            case ' ':  paused = !paused; nextStep = Clock::now() + period; break;
+            case '\r': /* Enter is 13, not '\n' */ break;
+            }
+        }
+        // 2. read inputs, compare with previous values, print only when something changed
+        auto now = Clock::now();                // 3. act when due
+        if (!paused && now >= nextStep) {
+            /* one output write per step */
+            nextStep += period;                 // += keeps cadence; = now + period drifts
+            if (now - nextStep > period) nextStep = now + period;   // don't burst after a stall
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    }
+
+    galil.AnalogOutput(0, 0.0);                 // the Galil holds its last outputs after you exit
+    galil.DigitalOutput(0);
+
 }
